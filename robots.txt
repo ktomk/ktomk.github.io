@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://ktomk.github.io/sitemap.xml
