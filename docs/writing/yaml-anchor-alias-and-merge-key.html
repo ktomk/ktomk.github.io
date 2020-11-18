@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<title>YAML Anchor, Aliases and Merge Keys</title>
+<meta name="description" content="Writing about YAML anchor, alias and merge-key in use for reference YAML nodes/data and YAML mixins">
+<meta name="keywords" content="YAML, JSON">
+<meta name="author" content="Tom Klingenberg">
+<link rel="up" href="../index.html">
+
+<style>
+    body {max-width: 600px; padding: 20px; margin: auto}
+    li, dt {margin-top: 1em}
+    dt {font-weight: bold}
+</style>
+
+<h1><em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> Anchor, Aliases and Merge Keys</h1>
+<i>(Written by: Tom Klingenberg (Ktomk); Nov 2020)</i>
+
+<p> Serializing data in <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> is kind of common these days, especially configuration data. <em title="JSON &quot;JavaScript Object Notation&quot;; Keyword">JSON</em> is a similar, perhaps even more popular, format (and almost[!] a subset of <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> 1.2).
+
+<p> Some of YAML's properties not in JSON are <i>anchors</i>, <i>aliases</i> and <i>merge keys</i> that can work well together. These allow references and mixins for hashes (<i>not</i> sequences a.k.a. arrays) and are common to reduce repetition of same configuration directives that some files/systems tend to and/or sometimes just because one can (<abbr title="There's more than one way to do it">TIMTOWTDI</abbr>).
+
+<p> In/from/by the <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> specification:
+
+<dl>
+    <dt><em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> Anchor</dt>
+    <dd><tt>&amp;<i>&lt;anchor-name&gt;</i></tt></dd>
+    <dd>YAML 1.2 (3rd Edition) <a href="https://yaml.org/spec/1.2/spec.html#id2765878">3.2.2.2. Anchors and Aliases</a>
+    </dd>
+    <dd>YAML 1.1 <a href="https://yaml.org/spec/1.1/#id863390">3.2.2.2. Anchors and Aliases</a></dd>
+    <dd>YAML 1.0 <a href="https://yaml.org/spec/1.0/#id2563853">4.3.6. Anchor</a></dd>
+    <dt><em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> Alias</dt>
+    <dd><tt>*<i>&lt;anchor-name&gt;</i></tt></dd>
+    <dd>YAML 1.2 / 1.1; see above <i>3.2.2.2. Anchors and Aliases</i></dd>
+    <dd>YAML 1.0 <a href="https://yaml.org/spec/1.0/#id2563922">4.4. Alias</a></dd>
+    <dt><em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> Merge Key</dt>
+    <dd><tt><< : *<i>&lt;anchor-name&gt;</i></tt> (one; or:)</dd>
+    <dd><tt><< : [ *<i>&lt;anchor-name&gt;</i>, *<i>&lt;anchor-name&gt;</i>, ... ]</tt> (sequence of: [none,] one or multiple)
+    <dd>YAML 1.1 <a href="https://yaml.org/type/merge.html">Working Draft Merge Key Language-Independent Type</a> </dd>
+</dl>
+
+<p> Anchors need to be before aliasing (e.g. in an <i>alias</i> or <i>merge key</i>), can remain unused and can be re-defined, last one wins at the time of use (flow is from top to bottom).
+
+<p> Example-<em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> with <i>Aliases</i>, <i>References</i> and <i>Merge Keys</i> taken from the <a rel="noopener" href="https://yaml.org/type/merge.html"><i>Merge Key</i> working draft</a>:
+
+<pre><code class="l-yaml">---
+- &CENTER { x: 1, y: 2 }
+- &LEFT { x: 0, y: 2 }
+- &BIG { r: 10 }
+- &SMALL { r: 1 }
+
+# All the following maps are equal:
+
+- # Explicit keys
+  x: 1
+  y: 2
+  r: 10
+  label: center/big
+
+- # Merge one map
+  << : *CENTER
+  r: 10
+  label: center/big
+
+- # Merge multiple maps
+  << : [ *CENTER, *BIG ]
+  label: center/big
+
+- # Override
+  << : [ *BIG, *LEFT, *SMALL ]
+  x: 1
+  label: center/big
+</code></pre>
+
+<h2>Caveat: <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> Aliases and Schema-Validation</h2>
+
+<p> Schema-validation of a YAML document is only possible when all references and merge keys are represented. However, it is not that every schema-validator is able to keep the error information aligned to the original, pointing to the right, invalid line/offset or definition.
+
+<p> Schema-validation in the Intellij platform does not have this issue. Expect others to be broken, test before use.
+
+<h3>Comment</h3>
+
+<p> <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> parsing is normally considered hard (complicated as the syntax is complex). With all due respect, personally I can adhere to that in part, the <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> specification appears to be at (isolated) places hard to read despite me self-imagined being trained over decades into reading publicly available specifications (in not my first language). To be fair, it is one of the very few specs that has graphics and by the nature of its formulation, compilers are hard to read as well.
+
+<h2>Caveat: Support of <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">Merge Keys</em></h2>
+
+<p> Support in (YAML versions is different / is different per) specific <i><em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> versions</i>:
+</p>
+
+<ul>
+<li> <b>Anchors</b> and <b>Aliases</b> are part of <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> since 1.0, part of <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> 1.1 and <i title="as of time of writing">current</i> <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> 1.2.
+<li> <b>Merge Keys</b> are <i>only</i> part of <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> 1.1 which is deprecated, not part of <em class="key">YAML</em> 1.2 nor 1.0. That means that <b>Merge Keys</b> are born deprecated. Technically this is not possible in a specification, which may explain that <i>Merge Key Language-Independent Type for YAML™ Version 1.1</i> is a working draft with a single instance only. It appears to fall into the general availability of the YAML 1.1 release.
+
+<li>
+    <p> According to <i title="Flyx (nick)">Flyx</i> in a <a href="https://stackoverflow.com/a/47203224">posting on
+Stackoverflow</a> and also from the <a href="https://github.com/yaml/yaml-spec/wiki/YAML-RFC-Index"><em
+            class="key">YAML</em> RFCs</a> (<i>Ingy döt Net</i>, <i>Tinita</i>), <b>Merge Keys</b> are born deprecated with YAML 1.1.
+
+    <p> The <a href="https://stackoverflow.com/a/47203224">SO post 2017</a> suggests to replace <b>Merge key/s</b> with <q>something better</q> in an upcoming YAML version
+(best guess <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em>
+1.3 unreleased Nov 2020), the <a href="https://github.com/yaml/yaml-spec/wiki/YAML-RFC-Index">RFC index</a> has the note <q>Remove Merge Key</q> (<i>Brian Ingerson</i> / <i>Ingy döt Net</i>) verbatim to make the removal a new RFC.
+
+</ul>
+
+<h3>Comment</h3>
+
+<p> No idea when removal of <i>Merge Keys</i> will apply. Systems practically support <i><em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> Merge Key/s</i>, but it needs verification on a case to case basis.
+
+<p> A <em title="a recursive acronym for &quot;YAML Ain't Markup Language&quot;; Keyword">YAML</em> (file) is used against a specific system? Good to test first if <i>Merge Keys</i> are supported.
+
+<p> Will <i>Merge Key/s</i> ever be removed? I wonder that as it has become part of the API, deprecation only helps book-keeping, and later then for history.
+
+<h2>References</h2>
+
+<ul>
+    <li><a href="https://yaml.org/spec/1.0/">YAML Ain't Markup Language (YAML™) 1.0 (Final Draft 2004-JAN-29)</a> (by Oren Ben-Kiki, Clark Evans, Brian Ingerson; Jan 2004 for yaml.org)
+    <li><a href="https://yaml.org/spec/1.1/">YAML Ain’t Markup Language (YAML™) Version 1.1 (Final Draft -- 2005-01-18)</a> (by Oren Ben-Kiki, Clark Evans, Brian Ingerson (Ingy döt Net); Jan 2005 for yaml.org)
+    <li><a href="https://yaml.org/spec/1.2/spec.html">YAML Ain’t Markup Language (YAML™) Version 1.2 (3rd Edition, Patched at 2009-10-01)</a> (by Oren Ben-Kiki, Clark Evans, Brian Ingerson (Ingy döt Net); Oct 2009 for yaml.org)
+    <li><a href="https://yaml.org/type/merge.html">Merge Key Language-Independent Type for YAML™ Version 1.1 (Working Draft 2005-01-18)</a> (by Oren Ben-Kiki, Clark Evans, Brian Ingerson; Jan 2005 for yaml.org)
+    <li><a href="https://perlpunk.github.io/slides.tpcia2017/the-state-of-the-yaml/">The State Of The YAML - Slides</a> (by Tina Müller; for <a href="http://act.perlconference.org/tpc-2017-amsterdam/"><i> The Perl Conference</i> in Amsterdam 9-11 Aug 2017</a>)
+    <li><a href="https://github.com/yaml/yaml-spec/wiki/YAML-RFC-Index">YAML RFC Index </a> (by Tina Müller (Tinita) and others; last Aug 2018 for github.com/yaml)
+    <li><a href="http://blogs.perl.org/users/tinita/2019/05/reusing-data-with-yaml-anchors-aliases-and-merge-keys.html">Reusing data with YAML Anchors, Aliases and Merge Keys</a> (by Tina Müller (Tinita); May 2019 for blogs.perl.org)
+    <li><a href="https://stackoverflow.com/a/47203224">Answer to YAML merge level</a> (by Flyx; Nov 2017 for stackoverflow.com)
+    <li><a href="https://www.json.org/">The JSON Data Interchange Standard (Introducing JSON - ECMA-404)</a></li>
+</ul>
+
+<h2>Index of Names</h2>
+<ul>
+    <li>Brian Ingerson (Ingy döt Net) &lt;ingy@ttul.org>, &lt;ingy@ingy.net>
+    <li>Clark Evans &lt;cce@clarkevans.com>
+    <li>Flyx (Flyx) &lt;https://flyx.org/>, &lt;https://github.com/flyx>
+    <li>Oren Ben-Kiki &lt;oren@ben-kiki.org>
+    <li>Tina Müller (Tinita) &lt;http://tinita.de/>
+</ul>
+
+<h2>Trivia</h2>
+<ul>
+    <li><a href="http://wordaligned.org/articles/timtowtdi-vs-tsboapooowtdi">TIMTOWTDI vs TSBO-APOO-OWTDI</a> (by Thomas Guest; Apr 2018; for Word Aligned - Space Sensitive Programming; in Python, Perl)
+</ul>
+
+<hr>
+<address>
+    <a href="..">ktomk.github.io</a><br>
+</address>
